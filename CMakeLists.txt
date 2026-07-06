@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(fem_solver LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(fem_solver main.cpp)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(nlohmann_json 3.2.0 REQUIRED)
+target_link_libraries(fem_solver PRIVATE Eigen3::Eigen nlohmann_json::nlohmann_json)
