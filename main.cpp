@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-
+#include <SFML/Graphics.hpp> 
 struct Node
 {
     double x, y;
@@ -113,5 +113,86 @@ K_global(3, 3) += penalty;   // node 1 v — roller
         std::cout << "Element " << e << " stress = " << stress << " Pa\n";
     }
 
+    // --- visualization ---
+    const float W = 800, H = 600;
+    const float scale = 200.0f;
+    const float dispScale = 500.0f;
+    const float nodeRadius = 8.0f;
+
+    sf::RenderWindow window(sf::VideoMode(W, H), "FEM Solver");
+
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear(sf::Color(30, 30, 30));
+
+        // draw original structure
+        for (int e = 0; e < elements.size(); e++)
+        {
+            int n1 = elements[e].node1;
+            int n2 = elements[e].node2;
+
+            sf::Vertex line[2];
+            line[0].position = sf::Vector2f(
+                100 + nodes[n1].x * scale,
+                H - 100 - nodes[n1].y * scale);
+            line[1].position = sf::Vector2f(
+                100 + nodes[n2].x * scale,
+                H - 100 - nodes[n2].y * scale);
+            line[0].color = sf::Color(100, 100, 100);
+            line[1].color = sf::Color(100, 100, 100);
+            window.draw(line, 2, sf::Lines);
+        }
+
+        // draw deformed structure
+        for (int e = 0; e < elements.size(); e++)
+        {
+            int n1 = elements[e].node1;
+            int n2 = elements[e].node2;
+
+            sf::Vertex line[2];
+            line[0].position = sf::Vector2f(
+                100 + (nodes[n1].x + u(2*n1)   * dispScale) * scale,
+                H - 100 - (nodes[n1].y + u(2*n1+1) * dispScale) * scale);
+            line[1].position = sf::Vector2f(
+                100 + (nodes[n2].x + u(2*n2)   * dispScale) * scale,
+                H - 100 - (nodes[n2].y + u(2*n2+1) * dispScale) * scale);
+            line[0].color = sf::Color(255, 100, 100);
+            line[1].color = sf::Color(255, 100, 100);
+            window.draw(line, 2, sf::Lines);
+        }
+
+        // draw original nodes
+        for (int i = 0; i < nodes.size(); i++)
+        {
+            sf::CircleShape circle(nodeRadius);
+            circle.setFillColor(sf::Color(150, 150, 150));
+            circle.setPosition(
+                100 + nodes[i].x * scale - nodeRadius,
+                H - 100 - nodes[i].y * scale - nodeRadius);
+            window.draw(circle);
+        }
+
+        // draw deformed nodes
+        for (int i = 0; i < nodes.size(); i++)
+        {
+            sf::CircleShape circle(nodeRadius);
+            circle.setFillColor(sf::Color(255, 50, 50));
+            circle.setPosition(
+                100 + (nodes[i].x + u(2*i)   * dispScale) * scale - nodeRadius,
+                H - 100 - (nodes[i].y + u(2*i+1) * dispScale) * scale - nodeRadius);
+            window.draw(circle);
+        }
+
+        window.display();
+    }
+
     return 0;
+    
 }
